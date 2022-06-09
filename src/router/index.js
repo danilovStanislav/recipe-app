@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomePage from '../views/HomePage.vue'
-import RandomRecipePage from '../views/RandomRecipePage.vue'
+import RecipePage from '../views/RecipePage.vue'
 
 const routes = [
 	{
@@ -9,9 +9,10 @@ const routes = [
 		component: HomePage,
 	},
 	{
-		path: '/random',
-		name: 'RandomRecipePage',
-		component: RandomRecipePage,
+		path: '/recipe/:id',
+		name: 'RecipePage',
+		component: RecipePage,
+	},
 	},
 ]
 
