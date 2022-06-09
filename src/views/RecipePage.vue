@@ -1,26 +1,12 @@
 <template>
-	<section class="w-full min-h-screen mt-16 flex flex-col relative">
-		<section class="max-w-5xl p-3 mx-auto flex items-center">
-			<p v-if="recipe" class="">
-				Did you like the recipe?
-				<span class="underline underline-offset-2">Save it to bookmarks!</span> If you want another
-				recipe
-			</p>
-			<button
-				@click="getRecipe"
-				class="py-1 px-2 font-bold text-center text-sm bg-orange-500 rounded-md border-2 border-orange-500 hover:bg-white hover:shadow-lg ease-in duration-100"
-				:class="{ 'ml-3': recipe }"
-			>
-				{{ recipeButtonText }}
-			</button>
-		</section>
-
-		<main
-			class="max-w-5xl px-3 py-4 pl-16 mx-auto flex flex-col relative"
-			v-if="recipe"
-		>
+	<section
+		class="max-w-6xl px-3 py-4 mt-16 mx-auto flex relative"
+		v-if="recipe"
+	>
+		<AsidePanel :recipe="recipe" @savedBookmark="savedBookmark" />
+		<main>
 			<h2
-				class="w-full px-3 mx-auto mb-3 text-gray-800 text-3xl self-start"
+				class="w-full px-3 mx-auto mb-3 text-gray-800 text-3xl self-start font-black"
 				v-if="recipe"
 			>
 				{{ recipe.title }}
@@ -62,13 +48,11 @@
 				>
 			</div>
 
-			<AsidePanel @savedBookmark="savedBookmark" />
-
 			<div
-				class="py-4 flex items-start border-b-2 border-solid border-b-gray-300"
+				class="py-4 flex items-start justify-center border-b-2 border-b-gray-300"
 			>
-				<img class="max-w-md mr-8" :src="recipe.image" alt="Recipe image" />
-				<ul class="p-5 pr-14 rounded-md border-2 border-gray-300 relative">
+				<img class="w-full max-w-sm mr-8 object-cover" :src="recipe.image" alt="Recipe image" />
+				<ul class="p-5 pr-14 min-w-fit rounded-md border-2 border-gray-300 relative">
 					<div
 						class="w-9 h-9 flex justify-center items-center absolute top-0 right-0 -translate-y-1/3 translate-x-1/2 bg-white"
 					>
@@ -141,7 +125,10 @@
 				</ul>
 			</section>
 
-			<section class="max-w-xl py-4 flex flex-col border-b-2 border-gray-300">
+			<section
+				v-if="cookingSteps"
+				class="max-w-xl py-4 flex flex-col border-b-2 border-gray-300"
+			>
 				<h3 class="mb-3 flex items-center font-bold text-xl">
 					<svg
 						class="w-7 h-7 mr-3"
@@ -192,11 +179,17 @@
 </template>
 
 <script setup>
+import { useRecipe } from '../composables/useRecipe'
 import AsidePanel from '../components/AsidePanel.vue'
-import { useRandomRecipe } from '../composables/useRandomRecipe'
-import { ref, computed } from 'vue'
+import { onMounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
 
-const { getRecipe, recipe, loading, error } = useRandomRecipe()
+const route = useRoute()
+const { getRecipe, recipe, loading, error } = useRecipe()
+
+onMounted(async () => {
+	getRecipe(route.params.id)
+})
 
 const recipeButtonText = computed(() =>
 	recipe.value ? 'Click to refresh' : 'I want to eat!'
@@ -206,7 +199,10 @@ const readyInMinutes = computed(() => `${recipe.value.readyInMinutes} minutes`)
 const preparationMinutes = computed(
 	() => `${recipe.value.preparationMinutes} minutes`
 )
-const cookingSteps = computed(() => recipe.value.analyzedInstructions[0].steps)
+const cookingSteps = computed(() => {
+	let steps = recipe.value.analyzedInstructions
+	return steps.length ? steps[0].steps : false
+})
 
 const pricePerServing = computed(() => {
 	let dollars = recipe.value.pricePerServing / 100
